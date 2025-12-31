@@ -1171,5 +1171,71 @@ legend {
   }
 }
 
+/* =================== PENDING STORIES STYLING =================== */
+.pending-story {
+  position: relative;
+  border: 2px solid var(--warning-color);
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.pending-story::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--warning-color), var(--secondary-color));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.pending-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--warning-color);
+  color: var(--dark-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pending-story .story-image {
+  opacity: 0.9;
+  filter: grayscale(20%);
+}
+
+.pending-story:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+/* Favorite button positioning */
+.story-card {
+  position: relative;
+}
+
 
 

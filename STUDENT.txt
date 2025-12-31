@@ -1,2 +1,2 @@
-APP_URL=<url_aplikasi>
-MAP_SERVICE_API_KEY=<api_key>
+url website netlify: https://velvety-lebkuchen-8a619c.netlify.app/
+url website firebase: https://submission-kedua-pwi.web.app

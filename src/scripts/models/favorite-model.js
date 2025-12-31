@@ -1,19 +1,20 @@
 /**
  * FavoriteModel
- * Model untuk mengelola cerita favorit menggunakan localStorage
+ * Model untuk mengelola cerita favorit menggunakan IndexedDB
  */
+import indexedDBManager from '../utils/indexeddb-manager.js';
+
 class FavoriteModel {
   constructor() {
-    this.STORAGE_KEY = 'favorite_stories';
+    this.dbManager = indexedDBManager;
   }
 
   /**
    * Get semua cerita favorit
    */
-  getAllFavorites() {
+  async getAllFavorites() {
     try {
-      const favorites = localStorage.getItem(this.STORAGE_KEY);
-      return favorites ? JSON.parse(favorites) : [];
+      return await this.dbManager.getAllFavorites();
     } catch (error) {
       console.error('Error getting favorites:', error);
       return [];
@@ -23,19 +24,15 @@ class FavoriteModel {
   /**
    * Tambah cerita ke favorit
    */
-  addFavorite(story) {
+  async addFavorite(story) {
     try {
-      const favorites = this.getAllFavorites();
-      
       // Cek apakah sudah ada
-      const exists = favorites.some(fav => fav.id === story.id);
+      const exists = await this.dbManager.isFavorite(story.id);
       if (exists) {
         return false;
       }
 
-      favorites.push(story);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
-      return true;
+      return await this.dbManager.addFavorite(story);
     } catch (error) {
       console.error('Error adding favorite:', error);
       return false;
@@ -45,12 +42,9 @@ class FavoriteModel {
   /**
    * Hapus cerita dari favorit
    */
-  removeFavorite(storyId) {
+  async removeFavorite(storyId) {
     try {
-      const favorites = this.getAllFavorites();
-      const filtered = favorites.filter(fav => fav.id !== storyId);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
-      return true;
+      return await this.dbManager.removeFavorite(storyId);
     } catch (error) {
       console.error('Error removing favorite:', error);
       return false;
@@ -60,17 +54,22 @@ class FavoriteModel {
   /**
    * Cek apakah cerita ada di favorit
    */
-  isFavorite(storyId) {
-    const favorites = this.getAllFavorites();
-    return favorites.some(fav => fav.id === storyId);
+  async isFavorite(storyId) {
+    try {
+      return await this.dbManager.isFavorite(storyId);
+    } catch (error) {
+      console.error('Error checking favorite:', error);
+      return false;
+    }
   }
 
   /**
    * Hapus semua favorit
    */
-  clearAll() {
+  async clearAll() {
     try {
-      localStorage.removeItem(this.STORAGE_KEY);
+      const favorites = await this.getAllFavorites();
+      await Promise.all(favorites.map(fav => this.dbManager.removeFavorite(fav.id)));
       return true;
     } catch (error) {
       console.error('Error clearing favorites:', error);
@@ -81,8 +80,13 @@ class FavoriteModel {
   /**
    * Get jumlah favorit
    */
-  getCount() {
-    return this.getAllFavorites().length;
+  async getCount() {
+    try {
+      return await this.dbManager.getFavoriteCount();
+    } catch (error) {
+      console.error('Error getting favorite count:', error);
+      return 0;
+    }
   }
 }
 

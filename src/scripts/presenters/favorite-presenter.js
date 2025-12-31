@@ -11,9 +11,9 @@ class FavoritePresenter {
   /**
    * Load semua cerita favorit
    */
-  handleGetFavorites() {
+  async handleGetFavorites() {
     try {
-      const favorites = this.model.getAllFavorites();
+      const favorites = await this.model.getAllFavorites();
       this.view.displayFavorites(favorites);
     } catch (error) {
       this.view.showError('Gagal memuat cerita favorit');
@@ -24,12 +24,12 @@ class FavoritePresenter {
   /**
    * Hapus cerita dari favorit
    */
-  handleRemoveFavorite(storyId) {
+  async handleRemoveFavorite(storyId) {
     try {
-      const success = this.model.removeFavorite(storyId);
+      const success = await this.model.removeFavorite(storyId);
       if (success) {
         this.view.showSuccess('Cerita dihapus dari favorit');
-        this.handleGetFavorites(); // Refresh list
+        await this.handleGetFavorites(); // Refresh list
       } else {
         this.view.showError('Gagal menghapus cerita dari favorit');
       }
@@ -42,12 +42,12 @@ class FavoritePresenter {
   /**
    * Hapus semua favorit
    */
-  handleClearAll() {
+  async handleClearAll() {
     try {
-      const success = this.model.clearAll();
+      const success = await this.model.clearAll();
       if (success) {
         this.view.showSuccess('Semua cerita favorit telah dihapus');
-        this.handleGetFavorites(); // Refresh list
+        await this.handleGetFavorites(); // Refresh list
       } else {
         this.view.showError('Gagal menghapus semua favorit');
       }
@@ -60,15 +60,15 @@ class FavoritePresenter {
   /**
    * Toggle favorite status
    */
-  handleToggleFavorite(story) {
+  async handleToggleFavorite(story) {
     try {
-      const isFavorite = this.model.isFavorite(story.id);
+      const isFavorite = await this.model.isFavorite(story.id);
       
       if (isFavorite) {
-        const success = this.model.removeFavorite(story.id);
+        const success = await this.model.removeFavorite(story.id);
         return { success, isFavorite: false };
       } else {
-        const success = this.model.addFavorite(story);
+        const success = await this.model.addFavorite(story);
         return { success, isFavorite: true };
       }
     } catch (error) {

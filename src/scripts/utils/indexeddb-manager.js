@@ -4,11 +4,12 @@
  */
 
 const DB_NAME = 'CeritaNusantaraDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORES = {
   STORIES: 'stories',
   PENDING_STORIES: 'pending_stories',
-  SYNC_QUEUE: 'sync_queue'
+  SYNC_QUEUE: 'sync_queue',
+  FAVORITES: 'favorites'
 };
 
 class IndexedDBManager {
@@ -61,6 +62,12 @@ class IndexedDBManager {
           });
           syncStore.createIndex('timestamp', 'timestamp', { unique: false });
           syncStore.createIndex('type', 'type', { unique: false });
+        }
+
+        // Store untuk favorites
+        if (!db.objectStoreNames.contains(STORES.FAVORITES)) {
+          const favoritesStore = db.createObjectStore(STORES.FAVORITES, { keyPath: 'id' });
+          favoritesStore.createIndex('createdAt', 'createdAt', { unique: false });
         }
 
         console.log('IndexedDB schema created/updated');
@@ -285,6 +292,123 @@ class IndexedDBManager {
       pendingSync: pending.length,
       lastSync: localStorage.getItem('lastSyncTime') || 'Never'
     };
+  }
+
+  /**
+   * ===== FAVORITES OPERATIONS =====
+   */
+
+  /**
+   * Get all favorites
+   */
+  async getAllFavorites() {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FAVORITES], 'readonly');
+      const store = transaction.objectStore(STORES.FAVORITES);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to get favorites from IndexedDB'));
+      };
+    });
+  }
+
+  /**
+   * Add story to favorites
+   */
+  async addFavorite(story) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FAVORITES], 'readwrite');
+      const store = transaction.objectStore(STORES.FAVORITES);
+      
+      const favorite = {
+        ...story,
+        favoriteAddedAt: new Date().toISOString()
+      };
+
+      const request = store.put(favorite);
+
+      request.onsuccess = () => {
+        console.log(`Added story ${story.id} to favorites`);
+        resolve(true);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to add favorite'));
+      };
+    });
+  }
+
+  /**
+   * Remove story from favorites
+   */
+  async removeFavorite(storyId) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FAVORITES], 'readwrite');
+      const store = transaction.objectStore(STORES.FAVORITES);
+      const request = store.delete(storyId);
+
+      request.onsuccess = () => {
+        console.log(`Removed story ${storyId} from favorites`);
+        resolve(true);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to remove favorite'));
+      };
+    });
+  }
+
+  /**
+   * Check if story is in favorites
+   */
+  async isFavorite(storyId) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FAVORITES], 'readonly');
+      const store = transaction.objectStore(STORES.FAVORITES);
+      const request = store.get(storyId);
+
+      request.onsuccess = () => {
+        resolve(!!request.result);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to check favorite status'));
+      };
+    });
+  }
+
+  /**
+   * Get favorite count
+   */
+  async getFavoriteCount() {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FAVORITES], 'readonly');
+      const store = transaction.objectStore(STORES.FAVORITES);
+      const request = store.count();
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(new Error('Failed to get favorite count'));
+      };
+    });
   }
 }
 

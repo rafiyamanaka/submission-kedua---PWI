@@ -138,8 +138,8 @@ class AppRouter {
       authPresenter.handleLogout();
     };
 
-    homeView.onToggleFavorite = (story, buttonElement) => {
-      const result = favoritePresenter.handleToggleFavorite(story);
+    homeView.onToggleFavorite = async (story, buttonElement) => {
+      const result = await favoritePresenter.handleToggleFavorite(story);
       
       if (result.success) {
         // Trigger animation
@@ -174,8 +174,9 @@ class AppRouter {
         try {
           await syncManager.syncPendingStories(token);
           // Refresh stories after sync
-          const favoriteIds = this.favoriteModel.getAllFavorites().map(fav => fav.id);
-          storyPresenter.handleGetAllStories(token, favoriteIds);
+          const favorites = await this.favoriteModel.getAllFavorites();
+          const favoriteIds = favorites.map(fav => fav.id);
+          await storyPresenter.handleGetAllStories(token, favoriteIds);
           // Update pending count
           const stats = await indexedDBManager.getStats();
           homeView.updatePendingCount(stats.pendingSync);
@@ -194,11 +195,12 @@ class AppRouter {
 
     const token = this.authModel.getToken();
     if (token) {
-      // Get favorite IDs untuk highlight
-      const favoriteIds = this.favoriteModel.getAllFavorites().map(fav => fav.id);
-      
-      storyPresenter.handleGetStoriesWithLocation(token);
-      storyPresenter.handleGetAllStories(token, favoriteIds);
+      // Get favorite IDs untuk highlight (async)
+      this.favoriteModel.getAllFavorites().then(favorites => {
+        const favoriteIds = favorites.map(fav => fav.id);
+        storyPresenter.handleGetStoriesWithLocation(token);
+        storyPresenter.handleGetAllStories(token, favoriteIds);
+      });
       
       // Initialize push notification
       pushNotificationPresenter.init(token);

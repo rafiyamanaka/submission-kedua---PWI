@@ -170,14 +170,20 @@ class HomeView {
       .map(
         (story) => {
           const isFavorite = favoriteIds.includes(story.id);
+          const isPending = story.isPending || false;
+          const pendingBadge = isPending ? '<span class="pending-badge" title="Menunggu disinkronkan">⏳ Pending</span>' : '';
+          
           return `
-        <article class="story-card" data-story-id="${story.id}" aria-label="Cerita dari ${this._escapeHtml(story.name)}">
-          <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-story-id="${story.id}" aria-label="${isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}" title="${isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}">
+        <article class="story-card ${isPending ? 'pending-story' : ''}" data-story-id="${story.id}" aria-label="Cerita dari ${this._escapeHtml(story.name)}">
+          ${!isPending ? `<button class="favorite-btn ${isFavorite ? 'active' : ''}" data-story-id="${story.id}" aria-label="${isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}" title="${isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}">
             ${isFavorite ? '❤️' : '🤍'}
-          </button>
+          </button>` : ''}
+          ${pendingBadge}
           ${
             story.photoUrl
-              ? `<img src="${story.photoUrl}" alt="Gambar cerita: ${this._escapeHtml(story.name)}" class="story-image" />`
+              ? isPending 
+                ? `<img src="${story.photoUrl}" alt="Gambar cerita: ${this._escapeHtml(story.name)}" class="story-image" />`
+                : `<img src="${story.photoUrl}" alt="Gambar cerita: ${this._escapeHtml(story.name)}" class="story-image" />`
               : '<div class="story-image-placeholder">Tidak ada gambar</div>'
           }
           <div class="story-content">
